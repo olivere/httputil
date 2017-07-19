@@ -59,10 +59,10 @@ func ExampleMissingParameterError() {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	fmt.Printf("Status: %d %s\n", resp.StatusCode, resp.Status)
+	fmt.Printf("Status: %d\n", resp.StatusCode)
 	fmt.Println(string(body))
 	// Output:
-	// Status: 400 Bad Request
+	// Status: 400
 	// {
 	//   "error": {
 	//     "code": 400,
@@ -128,10 +128,10 @@ func ExampleWriteJSONCode() {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	fmt.Printf("Status: %d %s\n", resp.StatusCode, resp.Status)
+	fmt.Printf("Status: %d\n", resp.StatusCode)
 	fmt.Println(string(body))
 	// Output:
-	// Status: 201 Created
+	// Status: 201
 	// {
 	//   "name": "Oliver"
 	// }
