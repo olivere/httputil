@@ -1,5 +1,6 @@
 /*
-Package httputil is a set of opinionated HTTP-related helpers.
+Package httputil is a set of opinionated helpers for HTTP servers/handlers,
+working with HTTP requests and responses, and managing errors.
 
 Helpers include e.g. extracting bearer tokens from HTTP headers,
 retrieving parameters from the query string or parsing the HTTP
