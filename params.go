@@ -304,6 +304,37 @@ func MustQueryTimeWithDefault(r *http.Request, key, layout string, defaultValue 
 	return t
 }
 
+// MustQueryDuration checks if the request r has a query string with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will return defaultValue or a zero time.
+func MustQueryDuration(r *http.Request, key string) time.Duration {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		var d time.Duration
+		return d
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		panic(InvalidParameterError(key))
+	}
+	return d
+}
+
+// MustQueryDurationWithDefault checks if the request r has a query string with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will return defaultValue or a zero time.
+func MustQueryDurationWithDefault(r *http.Request, key string, defaultValue time.Duration) time.Duration {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return defaultValue
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		panic(InvalidParameterError(key))
+	}
+	return d
+}
+
 // QueryString checks if the request r has a query string with
 // the specified key. If is doesn't, it will return defaultValue.
 func QueryString(r *http.Request, key string, defaultValue string) string {
@@ -432,6 +463,38 @@ func QueryTimeWithDefault(r *http.Request, key, layout string, defaultValue time
 		return defaultValue
 	}
 	return t
+}
+
+// QueryDuration checks if the request r has a query string with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will return defaultValue or a zero duration.
+func QueryDuration(r *http.Request, key string) time.Duration {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		var d time.Duration
+		return d
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		var d time.Duration
+		return d
+	}
+	return d
+}
+
+// QueryDurationWithDefault checks if the request r has a query string with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will return defaultValue or a zero duration.
+func QueryDurationWithDefault(r *http.Request, key string, defaultValue time.Duration) time.Duration {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return defaultValue
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		return defaultValue
+	}
+	return d
 }
 
 // -- Router parameters --
