@@ -601,6 +601,21 @@ func ParamsString(r *http.Request, key string, defaultValue string) string {
 	return v
 }
 
+// ParamsBool checks if the request r has a routing component with
+// the specified key. If is doesn't, it will return defaultValue.
+func ParamsBool(r *http.Request, key string, defaultValue bool) bool {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		return defaultValue
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		panic(InvalidParameterError(key))
+	}
+	return b
+}
+
 // ParamsInt checks if the request r has a routing component with
 // the specified key that can be converted to an int.
 // If is doesn't, it will return defaultValue.
