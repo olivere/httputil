@@ -1,6 +1,6 @@
 # What is it?
 
-[![Build Status](https://travis-ci.org/olivere/httputil.svg?branch=master)](https://travis-ci.org/olivere/httputil)
+[![Build Status](https://travis-ci.org/olivere/httputil.svg?branch=v2)](https://travis-ci.org/olivere/httputil)
 
 The `httputil` package is a set of opinionated HTTP-related helpers.
 

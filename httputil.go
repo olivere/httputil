@@ -43,7 +43,7 @@ func ReadJSON(r *http.Request, dst interface{}) error {
 	defer byteBufPool.Put(buf)
 	// Limit to 8 MB of JSON
 	if err := json.NewDecoder(io.TeeReader(io.LimitReader(r.Body, 8<<20), buf)).Decode(dst); err != nil {
-		return fmt.Errorf("Invalid JSON data: %v, on input: %s", err, buf.Bytes())
+		return fmt.Errorf("invalid JSON data: %v, on input: %s", err, buf.Bytes())
 	}
 	return nil
 }
@@ -51,7 +51,7 @@ func ReadJSON(r *http.Request, dst interface{}) error {
 // MustReadJSON is like ReadJSON, but panics on errors.
 func MustReadJSON(r *http.Request, dst interface{}) {
 	if err := ReadJSON(r, dst); err != nil {
-		panic(InvalidJSONError{err})
+		panic(BadRequestError{Message: "Invalid JSON data", Err: err})
 	}
 }
 
@@ -69,11 +69,7 @@ func WriteJSON(w http.ResponseWriter, data interface{}) {
 
 // WriteJSONCode writes data as JSON into w and sets the HTTP status code.
 func WriteJSONCode(w http.ResponseWriter, code int, data interface{}) {
-	js, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		BadRequestError(w, "JSON serialization error: %v", err)
-		return
-	}
+	js, _ := json.MarshalIndent(data, "", "  ")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(js)
@@ -86,7 +82,6 @@ func Recover(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteError(w, err)
 	}
-	return
 }
 
 // RecoverJSON can be used as a deferred func to catch panics in an HTTP handler
@@ -103,5 +98,4 @@ func RecoverJSON(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteJSONError(w, err)
 	}
-	return
 }

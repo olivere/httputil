@@ -12,7 +12,7 @@ import (
 
 	"net/http/httptest"
 
-	"github.com/olivere/httputil"
+	"github.com/olivere/httputil/v2"
 )
 
 func ExampleMustQueryString() {

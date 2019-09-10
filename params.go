@@ -5,6 +5,7 @@
 package httputil
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ import (
 func MustFormString(r *http.Request, key string) string {
 	v := r.FormValue(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	return v
 }
@@ -31,11 +32,11 @@ func MustFormString(r *http.Request, key string) string {
 func MustFormBool(r *http.Request, key string) bool {
 	v := r.FormValue(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	f, err := strconv.ParseBool(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return f
 }
@@ -46,11 +47,11 @@ func MustFormBool(r *http.Request, key string) bool {
 func MustFormInt(r *http.Request, key string) int {
 	v := r.FormValue(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return i
 }
@@ -61,11 +62,11 @@ func MustFormInt(r *http.Request, key string) int {
 func MustFormInt32(r *http.Request, key string) int32 {
 	v := r.FormValue(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.ParseInt(v, 10, 32)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return int32(i)
 }
@@ -76,13 +77,28 @@ func MustFormInt32(r *http.Request, key string) int32 {
 func MustFormInt64(r *http.Request, key string) int64 {
 	v := r.FormValue(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return i
+}
+
+// MustFormFloat32 checks if the request r has a Form value with
+// the specified key that can be converted to a float32.
+// If is doesn't, it will panic.
+func MustFormFloat32(r *http.Request, key string) float32 {
+	v := r.FormValue(key)
+	if v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	f, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return float32(f)
 }
 
 // MustFormFloat64 checks if the request r has a Form value with
@@ -91,14 +107,79 @@ func MustFormInt64(r *http.Request, key string) int64 {
 func MustFormFloat64(r *http.Request, key string) float64 {
 	v := r.FormValue(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	f, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return f
 }
+
+// MustFormTime checks if the request r has a Form value with
+// the specified key that can be converted to a time.Time, based
+// on the given layout format. If it doesn't, it will panic.
+func MustFormTime(r *http.Request, key, layout string) time.Time {
+	v := r.FormValue(key)
+	if v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return t
+}
+
+// MustFormTimeWithDefault checks if the request r has a Form value with
+// the specified key that can be converted to a time.Time, based on
+// the given layout format.
+// If the key is missing, it will return defaultValue.
+// If conversion fails, it will panic.
+func MustFormTimeWithDefault(r *http.Request, key, layout string, defaultValue time.Time) time.Time {
+	v := r.FormValue(key)
+	if v == "" {
+		return defaultValue
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return t
+}
+
+// MustFormDuration checks if the request r has a Form value with
+// the specified key that can be converted to a time.Duration.
+// If it doesn't, it will panic.
+func MustFormDuration(r *http.Request, key string) time.Duration {
+	v := r.FormValue(key)
+	if v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	t, err := time.ParseDuration(v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return t
+}
+
+// MustFormDurationWithDefault checks if the request r has a Form value with
+// the specified key that can be converted to a time.Duration.
+// If the key is missing, it will return defaultValue.
+// If conversion fails, it will panic.
+func MustFormDurationWithDefault(r *http.Request, key string, defaultValue time.Duration) time.Duration {
+	v := r.FormValue(key)
+	if v == "" {
+		return defaultValue
+	}
+	t, err := time.ParseDuration(v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return t
+}
+
+// --
 
 // FormString checks if the request r has a Form value with
 // the specified key. If is doesn't, it will return defaultValue.
@@ -119,7 +200,7 @@ func FormBool(r *http.Request, key string, defaultValue bool) bool {
 	}
 	f, err := strconv.ParseBool(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return f
 }
@@ -134,7 +215,7 @@ func FormInt(r *http.Request, key string, defaultValue int) int {
 	}
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return i
 }
@@ -149,7 +230,7 @@ func FormInt32(r *http.Request, key string, defaultValue int32) int32 {
 	}
 	i, err := strconv.ParseInt(v, 10, 32)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return int32(i)
 }
@@ -164,9 +245,24 @@ func FormInt64(r *http.Request, key string, defaultValue int64) int64 {
 	}
 	i, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return i
+}
+
+// FormFloat32 checks if the request r has a Form value with
+// the specified key that can be converted to a float32.
+// If is doesn't, it will return defaultValue.
+func FormFloat32(r *http.Request, key string, defaultValue float32) float32 {
+	v := r.FormValue(key)
+	if v == "" {
+		return defaultValue
+	}
+	f, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		return defaultValue
+	}
+	return float32(f)
 }
 
 // FormFloat64 checks if the request r has a Form value with
@@ -179,9 +275,40 @@ func FormFloat64(r *http.Request, key string, defaultValue float64) float64 {
 	}
 	f, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return f
+}
+
+// FormTime checks if the request r has a Form value with
+// the specified key that can be converted to a time.Time,
+// given the specific layout.
+// If is doesn't, it will return defaultValue.
+func FormTime(r *http.Request, key, layout string, defaultValue time.Time) time.Time {
+	v := r.FormValue(key)
+	if v == "" {
+		return defaultValue
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		return defaultValue
+	}
+	return t
+}
+
+// FormDuration checks if the request r has a Form value with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will return defaultValue.
+func FormDuration(r *http.Request, key string, defaultValue time.Duration) time.Duration {
+	v := r.FormValue(key)
+	if v == "" {
+		return defaultValue
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		return defaultValue
+	}
+	return d
 }
 
 // -- Query string --
@@ -191,7 +318,7 @@ func FormFloat64(r *http.Request, key string, defaultValue float64) float64 {
 func MustQueryString(r *http.Request, key string) string {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	return v
 }
@@ -202,11 +329,11 @@ func MustQueryString(r *http.Request, key string) string {
 func MustQueryBool(r *http.Request, key string) bool {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	f, err := strconv.ParseBool(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return f
 }
@@ -217,11 +344,11 @@ func MustQueryBool(r *http.Request, key string) bool {
 func MustQueryInt(r *http.Request, key string) int {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return i
 }
@@ -232,11 +359,11 @@ func MustQueryInt(r *http.Request, key string) int {
 func MustQueryInt32(r *http.Request, key string) int32 {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.ParseInt(v, 10, 32)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return int32(i)
 }
@@ -247,13 +374,28 @@ func MustQueryInt32(r *http.Request, key string) int32 {
 func MustQueryInt64(r *http.Request, key string) int64 {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return i
+}
+
+// MustQueryFloat32 checks if the request r has a query string with
+// the specified key that can be converted to a float32.
+// If is doesn't, it will panic.
+func MustQueryFloat32(r *http.Request, key string) float32 {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	f, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return float32(f)
 }
 
 // MustQueryFloat64 checks if the request r has a query string with
@@ -262,11 +404,11 @@ func MustQueryInt64(r *http.Request, key string) int64 {
 func MustQueryFloat64(r *http.Request, key string) float64 {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	f, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return f
 }
@@ -274,16 +416,15 @@ func MustQueryFloat64(r *http.Request, key string) float64 {
 // MustQueryTime checks if the request r has a query string with
 // the specified key that can be converted to a time.Time, based on
 // the given layout format.
-// If is doesn't, it will return defaultValue or a zero time.
+// If key is missing or conversion fails, it will panic.
 func MustQueryTime(r *http.Request, key, layout string) time.Time {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		var t time.Time
-		return t
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	t, err := time.Parse(layout, v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return t
 }
@@ -291,7 +432,8 @@ func MustQueryTime(r *http.Request, key, layout string) time.Time {
 // MustQueryTimeWithDefault checks if the request r has a query string with
 // the specified key that can be converted to a time.Time, based on
 // the given layout format.
-// If is doesn't, it will return defaultValue or a zero time.
+// If the key is missing, it will return defaultValue.
+// If conversion fails, it will panic.
 func MustQueryTimeWithDefault(r *http.Request, key, layout string, defaultValue time.Time) time.Time {
 	v := r.URL.Query().Get(key)
 	if v == "" {
@@ -299,23 +441,22 @@ func MustQueryTimeWithDefault(r *http.Request, key, layout string, defaultValue 
 	}
 	t, err := time.Parse(layout, v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return t
 }
 
 // MustQueryDuration checks if the request r has a query string with
 // the specified key that can be converted to a time.Duration.
-// If is doesn't, it will return defaultValue or a zero time.
+// If it doesn't, it will panic.
 func MustQueryDuration(r *http.Request, key string) time.Duration {
 	v := r.URL.Query().Get(key)
 	if v == "" {
-		var d time.Duration
-		return d
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	d, err := time.ParseDuration(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return d
 }
@@ -330,10 +471,12 @@ func MustQueryDurationWithDefault(r *http.Request, key string, defaultValue time
 	}
 	d, err := time.ParseDuration(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return d
 }
+
+// --
 
 // QueryString checks if the request r has a query string with
 // the specified key. If is doesn't, it will return defaultValue.
@@ -414,6 +557,21 @@ func QueryInt64(r *http.Request, key string, defaultValue int64) int64 {
 		return defaultValue
 	}
 	return i
+}
+
+// QueryFloat32 checks if the request r has a query string with
+// the specified key that can be converted to a float32.
+// If is doesn't, it will return defaultValue.
+func QueryFloat32(r *http.Request, key string, defaultValue float32) float32 {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return defaultValue
+	}
+	i, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		return defaultValue
+	}
+	return float32(i)
 }
 
 // QueryFloat64 checks if the request r has a query string with
@@ -505,7 +663,7 @@ func MustParamsString(r *http.Request, key string) string {
 	vars := mux.Vars(r)
 	v, found := vars[key]
 	if !found || v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	return v
 }
@@ -517,11 +675,11 @@ func MustParamsBool(r *http.Request, key string) bool {
 	vars := mux.Vars(r)
 	v, found := vars[key]
 	if !found || v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	f, err := strconv.ParseBool(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return f
 }
@@ -533,11 +691,11 @@ func MustParamsInt(r *http.Request, key string) int {
 	vars := mux.Vars(r)
 	v, found := vars[key]
 	if !found || v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return i
 }
@@ -549,11 +707,11 @@ func MustParamsInt32(r *http.Request, key string) int32 {
 	vars := mux.Vars(r)
 	v, found := vars[key]
 	if !found || v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.ParseInt(v, 10, 32)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return int32(i)
 }
@@ -565,13 +723,29 @@ func MustParamsInt64(r *http.Request, key string) int64 {
 	vars := mux.Vars(r)
 	v, found := vars[key]
 	if !found || v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	i, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return i
+}
+
+// MustParamsFloat32 checks if the request r has a routing component with
+// the specified key that can be converted to a float32.
+// If is doesn't, it will panic.
+func MustParamsFloat32(r *http.Request, key string) float32 {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	f, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return float32(f)
 }
 
 // MustParamsFloat64 checks if the request r has a routing component with
@@ -581,14 +755,84 @@ func MustParamsFloat64(r *http.Request, key string) float64 {
 	vars := mux.Vars(r)
 	v, found := vars[key]
 	if !found || v == "" {
-		panic(MissingParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
 	}
 	f, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
 	}
 	return f
 }
+
+// MustParamsTime checks if the request r has a routing component with
+// the specified key that can be converted to a time.Time, given the
+// specific layout. If is doesn't, it will panic.
+func MustParamsTime(r *http.Request, key, layout string) time.Time {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return t
+}
+
+// MustParamsTimeWithDefault checks if the request r has a routing
+// component with the specified key that can be converted to a
+// time.Time, given the specific layout.
+// If the key is missing, it will return defaultValue.
+// If key exists but conversion fails, it will panic.
+func MustParamsTimeWithDefault(r *http.Request, key, layout string, defaultValue time.Time) time.Time {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		return defaultValue
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return t
+}
+
+// MustParamsDuration checks if the request r has a routing component with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will panic.
+func MustParamsDuration(r *http.Request, key string) time.Duration {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		panic(BadRequestError{Message: fmt.Sprintf("Missing parameter %q", key)})
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return d
+}
+
+// MustParamsDurationWithDefault checks if the request r has a routing
+// component with the specified key that can be converted to a
+// time.Duration.
+// If the key is missing, it will return defaultValue.
+// If key exists but conversion fails, it will panic.
+func MustParamsDurationWithDefault(r *http.Request, key string, defaultValue time.Duration) time.Duration {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		return defaultValue
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		panic(BadRequestError{Message: fmt.Sprintf("Invalid parameter %q", key)})
+	}
+	return d
+}
+
+// --
 
 // ParamsString checks if the request r has a routing component with
 // the specified key. If is doesn't, it will return defaultValue.
@@ -611,7 +855,7 @@ func ParamsBool(r *http.Request, key string, defaultValue bool) bool {
 	}
 	b, err := strconv.ParseBool(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return b
 }
@@ -627,7 +871,7 @@ func ParamsInt(r *http.Request, key string, defaultValue int) int {
 	}
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return i
 }
@@ -643,7 +887,7 @@ func ParamsInt32(r *http.Request, key string, defaultValue int32) int32 {
 	}
 	i, err := strconv.ParseInt(v, 10, 32)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return int32(i)
 }
@@ -659,9 +903,25 @@ func ParamsInt64(r *http.Request, key string, defaultValue int64) int64 {
 	}
 	i, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return i
+}
+
+// ParamsFloat32 checks if the request r has a routing component with
+// the specified key that can be converted to a float32.
+// If is doesn't, it will return defaultValue.
+func ParamsFloat32(r *http.Request, key string, defaultValue float32) float32 {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		return defaultValue
+	}
+	f, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		return defaultValue
+	}
+	return float32(f)
 }
 
 // ParamsFloat64 checks if the request r has a routing component with
@@ -675,7 +935,40 @@ func ParamsFloat64(r *http.Request, key string, defaultValue float64) float64 {
 	}
 	f, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		panic(InvalidParameterError(key))
+		return defaultValue
 	}
 	return f
+}
+
+// ParamsTime checks if the request r has a routing component with
+// the specified key that can be converted to a time.Time, given the
+// specific layout.
+// If is doesn't, it will return defaultValue.
+func ParamsTime(r *http.Request, key, layout string, defaultValue time.Time) time.Time {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		return defaultValue
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		return defaultValue
+	}
+	return t
+}
+
+// ParamsDuration checks if the request r has a routing component with
+// the specified key that can be converted to a time.Duration.
+// If is doesn't, it will return defaultValue.
+func ParamsDuration(r *http.Request, key string, defaultValue time.Duration) time.Duration {
+	vars := mux.Vars(r)
+	v, found := vars[key]
+	if !found || v == "" {
+		return defaultValue
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		return defaultValue
+	}
+	return d
 }
