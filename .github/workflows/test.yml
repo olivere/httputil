@@ -15,8 +15,5 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Compile
-      run: |
-        go build ./cmd/...
     - name: Test
       run: go test -race -v ./...
