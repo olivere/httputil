@@ -1,10 +1,12 @@
 module github.com/olivere/httputil
 
+go 1.15
+
 require (
-	github.com/golang/protobuf v1.2.0 // indirect
-	github.com/gorilla/mux v1.6.2
-	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
-	golang.org/x/text v0.3.1-0.20180810153555-6e3c4e7365dd // indirect
-	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8 // indirect
-	google.golang.org/grpc v1.14.0
+	github.com/gorilla/context v1.1.1 // indirect
+	github.com/gorilla/mux v1.8.0
+	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	google.golang.org/genproto v0.0.0-20210518161634-ec7691c0a37d // indirect
+	google.golang.org/grpc v1.37.1
 )
