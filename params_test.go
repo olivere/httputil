@@ -16,7 +16,7 @@ import (
 func TestMustFormString(t *testing.T) {
 	h := func(w http.ResponseWriter, r *http.Request) {
 		defer Recover(w, r)
-		fmt.Fprintf(w, MustFormString(r, "name"))
+		fmt.Fprint(w, MustFormString(r, "name"))
 	}
 
 	values := url.Values{"name": {"Oliver"}}
@@ -40,7 +40,7 @@ func TestMustFormString(t *testing.T) {
 func TestMustFormStringFailure(t *testing.T) {
 	h := func(w http.ResponseWriter, r *http.Request) {
 		defer Recover(w, r)
-		fmt.Fprintf(w, MustFormString(r, "name"))
+		fmt.Fprint(w, MustFormString(r, "name"))
 	}
 
 	values := url.Values{}

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // BadRequestError returns HTTP status 400 and an error message as HTML.
@@ -44,13 +44,13 @@ func WriteError(w http.ResponseWriter, err interface{}) {
 // WriteJSONError writes error information, serialized in a JSON structure.
 // Example:
 //
-//   {
-//     "error":{
-//       "code":    500,
-//       "message": "Something went wrong",
-//       "details": ["A was bad", "B is missing"]
-//     }
-//   }
+//	{
+//	  "error":{
+//	    "code":    500,
+//	    "message": "Something went wrong",
+//	    "details": ["A was bad", "B is missing"]
+//	  }
+//	}
 //
 // If err implements the httpCoder interface, it can specify the HTTP code
 // to return. If err implements the httpErrorDetails interface, its
@@ -202,15 +202,15 @@ type GrpcError struct {
 
 // Error returns the error message.
 func (e GrpcError) Error() string {
-	if s := grpc.ErrorDesc(e.Err); s != "" {
-		return s
+	if s, ok := status.FromError(e.Err); ok {
+		return s.Message()
 	}
 	return "Internal server error"
 }
 
 // HTTPCode returns the HTTP status code of the gRPC error.
 func (e GrpcError) HTTPCode() int {
-	switch grpc.Code(e.Err) {
+	switch status.Code(e.Err) {
 	case codes.OK:
 		return http.StatusOK
 	case codes.NotFound:

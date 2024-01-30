@@ -93,7 +93,7 @@ func TestMustReadJSON(t *testing.T) {
 	if fail.Error.Code != http.StatusBadRequest {
 		t.Errorf("expected error code = %d; got: %d", http.StatusBadRequest, fail.Error.Code)
 	}
-	if !strings.HasPrefix(fail.Error.Message, "Invalid JSON data") {
+	if !strings.HasPrefix(fail.Error.Message, "invalid JSON data") {
 		t.Errorf("unexpected error message: %q", fail.Error.Message)
 	}
 }
