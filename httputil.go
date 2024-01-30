@@ -40,10 +40,14 @@ var byteBufPool = sync.Pool{
 // A maximum size of 8 MB of JSON are permitted.
 func ReadJSON(r *http.Request, dst interface{}) error {
 	buf := byteBufPool.Get().(*bytes.Buffer)
-	defer byteBufPool.Put(buf)
+	defer func() {
+		buf.Reset()
+		byteBufPool.Put(buf)
+	}()
+
 	// Limit to 8 MB of JSON
 	if err := json.NewDecoder(io.TeeReader(io.LimitReader(r.Body, 8<<20), buf)).Decode(dst); err != nil {
-		return fmt.Errorf("Invalid JSON data: %v, on input: %s", err, buf.Bytes())
+		return fmt.Errorf("invalid JSON data: %v, on input: %s", err, buf.Bytes())
 	}
 	return nil
 }
@@ -86,22 +90,21 @@ func Recover(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteError(w, err)
 	}
-	return
 }
 
 // RecoverJSON can be used as a deferred func to catch panics in an HTTP handler
 // and print a JSON error.
 //
 // Example:
-//   func Handler(w http.ResponseWriter, r *http.Request) {
-//     defer httputil.RecoverJSON(w, r)
-//     ...
-//     panic(errors.New("kaboom"))
-//   }
+//
+//	func Handler(w http.ResponseWriter, r *http.Request) {
+//	  defer httputil.RecoverJSON(w, r)
+//	  ...
+//	  panic(errors.New("kaboom"))
+//	}
 func RecoverJSON(w http.ResponseWriter, r *http.Request) {
 	err := recover()
 	if err != nil {
 		WriteJSONError(w, err)
 	}
-	return
 }

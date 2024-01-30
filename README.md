@@ -8,7 +8,7 @@ Helpers include e.g. extracting bearer tokens from HTTP headers, retrieving para
 
 ## Prior art
 
-The original code was taken from [Camlistore](https://camlistore.org/), and is now available in the [calistore.org/pkg/httputil](https://camlistore.org/pkg/httputil) package.
+The original code was taken from [Camlistore](https://camlistore.org/), and was available in the [camlistore.org/pkg/httputil](https://camlistore.org/pkg/httputil) package. Lately, Camlistore has been renamed to [Perkeep](https://perkeep.org/).
 
 ## License
 
