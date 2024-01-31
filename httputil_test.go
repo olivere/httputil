@@ -153,12 +153,9 @@ func BenchmarkMustReadJSON(b *testing.B) {
 			if fail.Error.Code != http.StatusBadRequest {
 				b.Errorf("expected error code = %d; got: %d", http.StatusBadRequest, fail.Error.Code)
 			}
-			if !strings.HasPrefix(fail.Error.Message, "invalid JSON data") {
-				b.Errorf("unexpected error message prefix: %q", fail.Error.Message)
-			}
-			suffix := fmt.Sprintf(`on input: %s`, payload)
-			if !strings.HasSuffix(fail.Error.Message, suffix) {
-				b.Errorf("unexpected error message suffix: %q", fail.Error.Message)
+			want := fmt.Sprintf(`invalid JSON data: invalid character '}' after object key, on input: %s`, payload)
+			if got := fail.Error.Message; got != want {
+				b.Errorf("unexpected error message: %q", got)
 			}
 		}
 	})
