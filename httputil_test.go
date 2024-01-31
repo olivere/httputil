@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -94,6 +95,71 @@ func TestMustReadJSON(t *testing.T) {
 		t.Errorf("expected error code = %d; got: %d", http.StatusBadRequest, fail.Error.Code)
 	}
 	if !strings.HasPrefix(fail.Error.Message, "invalid JSON data") {
-		t.Errorf("unexpected error message: %q", fail.Error.Message)
+		t.Errorf("unexpected error message prefix: %q", fail.Error.Message)
 	}
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+func BenchmarkMustReadJSON(b *testing.B) {
+	h := func(w http.ResponseWriter, r *http.Request) {
+		defer RecoverJSON(w, r)
+
+		type coding struct {
+			Message string `json:"message"`
+		}
+		var dst coding
+		MustReadJSON(r, &dst)
+
+		fmt.Fprint(w, "ok\n")
+	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			payload := fmt.Sprintf(`{%q}`, randString(24))
+
+			req, err := http.NewRequest("GET", "http://localhost/", strings.NewReader(payload))
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			w := httptest.NewRecorder()
+			h(w, req)
+
+			got := w.Header().Get("Content-Type")
+			if got != "application/json" {
+				b.Errorf("expected Content-Type = %q; got: %q", "application/json", got)
+			}
+			type failure struct {
+				Error struct {
+					Code    int      `json:"code"`
+					Message string   `json:"message"`
+					Details []string `json:"details"`
+				} `json:"error"`
+			}
+			var fail failure
+			err = json.NewDecoder(w.Body).Decode(&fail)
+			if err != nil {
+				b.Fatal(err)
+			}
+			if fail.Error.Code != http.StatusBadRequest {
+				b.Errorf("expected error code = %d; got: %d", http.StatusBadRequest, fail.Error.Code)
+			}
+			if !strings.HasPrefix(fail.Error.Message, "invalid JSON data") {
+				b.Errorf("unexpected error message prefix: %q", fail.Error.Message)
+			}
+			suffix := fmt.Sprintf(`on input: %s`, payload)
+			if !strings.HasSuffix(fail.Error.Message, suffix) {
+				b.Errorf("unexpected error message suffix: %q", fail.Error.Message)
+			}
+		}
+	})
 }
